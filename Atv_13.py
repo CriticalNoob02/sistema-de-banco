@@ -138,6 +138,15 @@ class Banco(Cliente,Conta):
     def Conta(self,tipo):
         self.conta = tipo
 
+    def CarregandoConta(self, nome,idade,agencia,número,saldo,banco,conta):
+        self.nome = nome
+        self.idade = idade
+        self.agencia = agencia
+        self.número = número
+        self.saldo = saldo
+        self.banco = banco
+        self.conta = conta
+
 def GerarContaPessoal():
     ## Criando Conta;
     banco1 = Banco()
@@ -148,7 +157,7 @@ def GerarContaPessoal():
 
     return banco1
 
-def CriandoTipoConta(banco1):
+def CriandoTipoConta(banco1, id):
     ## Escolhendo tipo da conta;
     conta = int(input("Qual tipo de conta deseja acessar? ( 1 - Corrente/ 2 - Poupança ) "))
     corrente = ContaCorrente()
@@ -160,9 +169,13 @@ def CriandoTipoConta(banco1):
             print("")
             print(f"Parabéns, você acabou de ganhar um limite de R${banco1.conta.limiteEspecial} de Cheque Especial.")
             print("")
+            conexão.execute(f"UPDATE cadastro SET conta ='corrente' WHERE id ={id}")
+            conexão.commit()
         case 2:
             banco1.conta = poupança
-
+            conexão.execute(f"UPDATE cadastro SET conta = 'poupança' WHERE id = {id}")
+            conexão.commit()
+    
 def Operações(banco1):
     ## Sacar ou depositar;
     operação = int(input("Qual a operação desejada? ( 1- Sacar / 2- Depositar ) "))
@@ -173,7 +186,44 @@ def Operações(banco1):
         case 2:
             banco1.depositar(valor)
 
-banco1 = GerarContaPessoal()
-CriandoTipoConta(banco1)
-Operações(banco1)
+def Loguin(banco1):
+    nomeInput = input("Digite seu nome: ")
+    numeroInput = int(input("Digite sua conta: "))
+    ## Nome;
+    cursor.execute("SELECT nome FROM cadastro WHERE nome = ? AND numero = ?",(nomeInput,numeroInput))
+    for linha in cursor.fetchall():
+        nome = "".join(linha)
+    ## Idade;
+    cursor.execute("SELECT idade FROM cadastro WHERE nome = ? AND numero = ?",(nomeInput,numeroInput))
+    for linha in cursor.fetchall():
+        idade = linha[0]
+    ## Agência;
+    cursor.execute("SELECT agencia FROM cadastro WHERE nome = ? AND numero = ?",(nomeInput,numeroInput))
+    for linha in cursor.fetchall():
+        agencia = linha[0]
+    ## Número;
+    cursor.execute("SELECT numero FROM cadastro WHERE nome = ? AND numero = ?",(nomeInput,numeroInput))
+    for linha in cursor.fetchall():
+        numero = linha[0]
+    ## Saldo;
+    cursor.execute("SELECT saldo FROM cadastro WHERE nome = ? AND numero = ?",(nomeInput,numeroInput))
+    for linha in cursor.fetchall():
+        saldo = linha[0]
+    ## Banco;
+    cursor.execute("SELECT banco FROM cadastro WHERE nome = ? AND numero = ?",(nomeInput,numeroInput))
+    for linha in cursor.fetchall():
+        banco = "".join(linha)
+    ## Conta;
+    cursor.execute("SELECT conta FROM cadastro WHERE nome = ? AND numero = ?",(nomeInput,numeroInput))
+    for linha in cursor.fetchall():
+        conta = linha
+    ## Chamando Função;
+    banco1.CarregandoConta(nome,idade,agencia,numero,saldo,banco,conta)
+    banco1.mostrarConta()
 
+def PegandoID(banco1):
+    conta = banco1.número
+    cursor.execute(f"SELECT id FROM cadastro WHERE numero = {conta}")
+    for linha in cursor.fetchall():
+        id = linha[0]
+    return id
